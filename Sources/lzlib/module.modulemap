@@ -1,0 +1,5 @@
+module lzlib {
+    header "./include/lzlib.h"
+    link "lz"
+    export *
+}
