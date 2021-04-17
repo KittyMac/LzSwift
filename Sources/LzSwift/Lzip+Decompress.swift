@@ -10,6 +10,9 @@ extension Lzip {
         
         deinit {
             buffer.deallocate()
+            
+            LZ_decompress_close(decoder)
+            decoder = nil
         }
         
         public init() {
@@ -21,6 +24,7 @@ extension Lzip {
                 let rd = LZ_decompress_read(decoder, buffer, Int32(bufferSize))
                 if rd < 0 {
                     LZ_decompress_close(decoder)
+                    decoder = nil
                     throw Lzip.Error(LZ_decompress_errno(decoder))
                 }
                 if rd == 0 {
@@ -42,6 +46,7 @@ extension Lzip {
                         let wr = LZ_decompress_write(decoder, inBuffer + inOffset, Int32(inMaxSize))
                         if wr < 0 {
                             LZ_decompress_close(decoder)
+                            decoder = nil
                             throw Lzip.Error(LZ_decompress_errno(decoder))
                         }
                         inOffset += Int(wr)
@@ -58,6 +63,7 @@ extension Lzip {
             try? decompressRead(output: &output)
             
             LZ_decompress_close(decoder)
+            decoder = nil
         }
     }
 }
