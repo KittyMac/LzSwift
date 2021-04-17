@@ -12,7 +12,7 @@ extension Lzip {
             buffer.deallocate()
         }
         
-        init(level: CompressionLevel) {
+        public init(level: CompressionLevel) {
             var dicationarySize: Int32 = 65535
             var matchLenLimit: Int32 = 16
             
@@ -66,8 +66,8 @@ extension Lzip {
             }
         }
                 
-        func compress(input: Data,
-                      output: inout Data) throws {
+        public func compress(input: Data,
+                             output: inout Data) throws {
             try input.withUnsafeBytes { (inBuffer: UnsafePointer<UInt8>) -> Void in
                 let inBufferSize = input.count
                 var inOffset = 0
@@ -87,7 +87,7 @@ extension Lzip {
             }
         }
         
-        func finish(output: inout Data) {
+        public func finish(output: inout Data) {
             LZ_compress_finish(encoder)
             
             try? compressRead(output: &output)

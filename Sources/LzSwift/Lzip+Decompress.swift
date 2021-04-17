@@ -12,7 +12,7 @@ extension Lzip {
             buffer.deallocate()
         }
         
-        init() {
+        public init() {
             decoder = LZ_decompress_open()
         }
         
@@ -30,8 +30,8 @@ extension Lzip {
             }
         }
                 
-        func decompress(input: Data,
-                        output: inout Data) throws {
+        public func decompress(input: Data,
+                               output: inout Data) throws {
             try input.withUnsafeBytes { (inBuffer: UnsafePointer<UInt8>) -> Void in
                 let inBufferSize = input.count
                 var inOffset = 0
@@ -52,7 +52,7 @@ extension Lzip {
             }
         }
         
-        func finish(output: inout Data) {
+        public func finish(output: inout Data) {
             LZ_decompress_finish(decoder)
             
             try? decompressRead(output: &output)
