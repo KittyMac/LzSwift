@@ -37,6 +37,7 @@ extension Data {
         var destination = Data(capacity: self.count / 2)
         try decompressor.decompress(input: self,
                                     output: &destination)
+        decompressor.finish(output: &destination)
         return destination
     }
 

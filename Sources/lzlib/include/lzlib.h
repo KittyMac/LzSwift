@@ -21,12 +21,12 @@
 extern "C" {
 #endif
 
-typedef unsigned char uint8_t;
-
 /* LZ_API_VERSION was first defined in lzlib 1.8 to 1.
    Since lzlib 1.12, LZ_API_VERSION is defined as (major * 1000 + minor). */
 
 #define LZ_API_VERSION 1012
+
+typedef unsigned char uint8_t;
 
 static const char * const LZ_version_string = "1.12";
 

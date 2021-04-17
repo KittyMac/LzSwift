@@ -9,22 +9,8 @@ let package = Package(
         .library(name: "LzSwift", targets: ["LzSwift"]),
     ],
     targets: [
-        .target(name: "LzSwift",
-                dependencies: ["lzlib"],
-                linkerSettings: [
-                    .unsafeFlags(["-L/usr/local/lib/"])
-                ]
-        ),
-        .systemLibrary(
-            name: "lzlib",
-            path: "Sources/lzlib",
-            pkgConfig: "lzlib",
-            providers: [
-                .brew(["lzlib"]),
-                .apt(["lzlib-dev"]),
-            ]
-        ),
-        
+        .target(name: "lzlib"),
+        .target(name: "LzSwift",dependencies: ["lzlib"]),
         .testTarget(name: "LzSwiftTests", dependencies: ["LzSwift"]),
     ],
     swiftLanguageVersions: [

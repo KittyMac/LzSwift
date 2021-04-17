@@ -15,10 +15,23 @@ extension Lzip {
         init() {
             decoder = LZ_decompress_open()
         }
+        
+        private func decompressRead(output: inout Data) throws {
+            while true {
+                let rd = LZ_decompress_read(decoder, buffer, Int32(bufferSize))
+                if rd < 0 {
+                    LZ_decompress_close(decoder)
+                    throw Lzip.Error(LZ_decompress_errno(decoder))
+                }
+                if rd == 0 {
+                    break
+                }
+                output.append(buffer, count: Int(rd))
+            }
+        }
                 
-        @discardableResult
         func decompress(input: Data,
-                        output: inout Data) throws -> Bool {
+                        output: inout Data) throws {
             try input.withUnsafeBytes { (inBuffer: UnsafePointer<UInt8>) -> Void in
                 let inBufferSize = input.count
                 var inOffset = 0
@@ -34,25 +47,17 @@ extension Lzip {
                         inOffset += Int(wr)
                     }
                     
-                    while true {
-                        let rd = LZ_decompress_read(decoder, buffer, Int32(bufferSize))
-                        if rd < 0 {
-                            LZ_decompress_close(decoder)
-                            throw Lzip.Error(LZ_decompress_errno(decoder))
-                        }
-                        if rd == 0 {
-                            break
-                        }
-                        output.append(buffer, count: Int(rd))
-                    }
+                    try decompressRead(output: &output)
                 }
             }
+        }
+        
+        func finish(output: inout Data) {
+            LZ_decompress_finish(decoder)
             
-            if LZ_decompress_finished(decoder) == 1 {
-                LZ_decompress_close(decoder)
-                return true
-            }
-            return false
+            try? decompressRead(output: &output)
+            
+            LZ_decompress_close(decoder)
         }
     }
 }
