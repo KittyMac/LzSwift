@@ -17,10 +17,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 */
 
-#pragma clang module import Darwin.C.stdbool /* clang -E: implicit import for #include <stdbool.h> */
-#pragma clang module import Darwin.C.stdint /* clang -E: implicit import for #include <stdint.h> */
-#pragma clang module import Darwin.C.stdlib /* clang -E: implicit import for #include <stdlib.h> */
-#pragma clang module import Darwin.C.string /* clang -E: implicit import for #include <string.h> */
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 static const char * const LZ_version_string = "1.12";
 
