@@ -1,7 +1,7 @@
 import Foundation
 import lzlib
 
-fileprivate let bufferSize = 16384
+fileprivate let bufferSize = 65536
 
 extension Lzip {
     public class Compress {
@@ -54,25 +54,15 @@ extension Lzip {
             
             encoder = LZ_compress_open(dicationarySize, matchLenLimit, UInt64.max)
         }
-        
-        private func compressRead(output: inout Data) throws {
-            while true {
-                let rd = LZ_compress_read(encoder, buffer, Int32(bufferSize))
-                if rd < 0 {
-                    LZ_compress_close(encoder)
-                    encoder = nil
-                    throw Lzip.Error(LZ_compress_errno(encoder))
-                }
-                if rd == 0 {
-                    break
-                }
-                output.append(buffer, count: Int(rd))
-            }
-        }
                 
-        public func compress(input: Data,
-                             output: inout Data) throws {
-            try input.withUnsafeBytes { (inBuffer: UnsafePointer<UInt8>) -> Void in
+        public func compress(input: Data) throws -> Data {
+            return try input.withUnsafeBytes { (inBuffer: UnsafePointer<UInt8>) -> Data in
+                
+                var outBuffer = Pointer<UInt8>(count: bufferSize)
+                var outBufferIdx = 0
+                var outBufferCapacity = bufferSize
+
+                
                 let inBufferSize = input.count
                 var inOffset = 0
                 
@@ -87,8 +77,43 @@ extension Lzip {
                         }
                         inOffset += Int(wr)
                     }
-                    try compressRead(output: &output)
+                    
+                    
+                    while true {
+                        if outBufferIdx + bufferSize > outBufferCapacity {
+                            outBufferCapacity *= 2
+                            outBuffer.realloc(count: outBufferCapacity)
+                        }
+                        let rd = LZ_compress_read(encoder, outBuffer.baseAddress! + outBufferIdx, Int32(bufferSize))
+                        if rd < 0 {
+                            LZ_compress_close(encoder)
+                            encoder = nil
+                            throw Lzip.Error(LZ_compress_errno(encoder))
+                        }
+                        if rd <= 0 {
+                            break
+                        }
+                        outBufferIdx += Int(rd)
+                    }
                 }
+                
+                return outBuffer.release(count: outBufferIdx)
+            }
+        }
+        
+        
+        private func compressRead(output: inout Data) throws {
+            while true {
+                let rd = LZ_compress_read(encoder, buffer, Int32(bufferSize))
+                if rd < 0 {
+                    LZ_compress_close(encoder)
+                    encoder = nil
+                    throw Lzip.Error(LZ_compress_errno(encoder))
+                }
+                if rd == 0 {
+                    break
+                }
+                output.append(buffer, count: Int(rd))
             }
         }
         
