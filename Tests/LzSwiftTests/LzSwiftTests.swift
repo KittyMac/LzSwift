@@ -15,7 +15,7 @@ final class LzSwiftTests: XCTestCase {
                 let decompressor = Lzip.Decompress()
                 output = try decompressor.decompress(input: data)
             } else {
-                let compressor = Lzip.Compress(level: .lvl6)
+                let compressor = Lzip.Compress(level: .lvl1)
                 output = try compressor.compress(input: data)
                 compressor.finish(output: &output)
             }
@@ -27,17 +27,31 @@ final class LzSwiftTests: XCTestCase {
         }
     }
     
-    func testPerformanceCompression() {
+    func testPerformanceCompression0() {
+        // 165.3 MB -> 3.7 MB
+        // lzip: 8.158s
+        measure {
+            runPerformance(9_106_060, "/Volumes/Optane/ClusterArchiver/testFile0.csv")
+        }
+    }
+    
+    func testPerformanceDecompression0() {
+        // 3.7 MB -> 165.3 MB
+        measure {
+            runPerformance(165_293_728, "/Volumes/Optane/ClusterArchiver/testFile0.csv.lz")
+        }
+    }
+    
+    func testPerformanceCompression1() {
         // 9.48 GB -> 197 MB
         runPerformance(196_971_818, "/Volumes/Optane/ClusterArchiver/testFile1.csv")
     }
     
-    func testPerformanceDecompression() {
+    func testPerformanceDecompression1() {
         // 197 MB -> 9.48 GB
         // 44.3 secs (lzip CLI 54.648 secs)
         runPerformance(9_484_439_864, "/Volumes/Optane/ClusterArchiver/testFile1.csv.lz")
     }
-    
     
     func testSimpleCompression() {
         guard let original = lorem.data(using: .utf8) else { return XCTAssert(false) }
