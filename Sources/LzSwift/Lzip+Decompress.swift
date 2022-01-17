@@ -20,8 +20,10 @@ extension Lzip {
         }
                 
         public func decompress(input: Data) throws -> Data {
-            return try input.withUnsafeBytes { (inBuffer: UnsafePointer<UInt8>) -> Data in
-                
+            return try input.withUnsafeBytes { unsafeRawBufferPointer in
+                let unsafeBufferPointer = unsafeRawBufferPointer.bindMemory(to: UInt8.self)
+                guard let inBuffer = unsafeBufferPointer.baseAddress else { return Data() }
+
                 var outBuffer = Pointer<UInt8>(count: bufferSize)
                 var outBufferIdx = 0
                 var outBufferCapacity = bufferSize
