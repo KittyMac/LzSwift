@@ -18,7 +18,7 @@ extension Lzip {
     }
 }
 
-extension Data {    
+extension Data {
     public var isLzipped: Bool {
         return self.starts(with: [0x4c, 0x5a, 0x49, 0x50])
     }
@@ -38,39 +38,37 @@ extension Data {
     }
 }
 
-struct Pointer<T: ExpressibleByIntegerLiteral> {
+class Pointer<T: ExpressibleByIntegerLiteral> {
     var baseAddress: UnsafeMutablePointer<T>?
-    private var count: Int
+    var count: Int
     
     init (count: Int) {
         self.count = count
         self.baseAddress = malloc(count * MemoryLayout<T>.size)?.assumingMemoryBound(to: T.self)
     }
-    
-    init(_ source: UnsafeMutablePointer<T>, count: Int) {
-        self.init(count: count)
-        guard let baseAddress = baseAddress else { return }
-        baseAddress.initialize(from: source, count: count)
-    }
-    
-    mutating func dealloc() {
+        
+    func dealloc() {
         baseAddress?.deallocate()
         baseAddress = nil
     }
     
-    mutating func realloc(count: Int) {
+    func realloc(count: Int) {
         guard let baseAddress = baseAddress else { return }
         let newSize = count * MemoryLayout<T>.size
         self.baseAddress = Foundation.realloc(baseAddress, count * MemoryLayout<T>.size)?.assumingMemoryBound(to: T.self)
         self.count = newSize
     }
     
-    mutating func release(count: Int) -> Data {
+    func release(count: Int) -> Data {
         guard let baseAddress = baseAddress else { return Data() }
-        let dataAddress = baseAddress
-        let data = Data(bytesNoCopy: dataAddress, count: count, deallocator: .free)
+        let data = Data(bytesNoCopy: baseAddress, count: count, deallocator: .free)
         self.baseAddress = nil
         return data
+    }
+    
+    func export(count: Int) -> Data {
+        guard let baseAddress = baseAddress else { return Data() }
+        return Data(bytes: baseAddress, count: count)
     }
 }
 
