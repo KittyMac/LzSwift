@@ -46,7 +46,7 @@ extension Lzip {
                     while true {
                         
                         if outBufferIdx + bufferSize > outBufferCapacity {
-                            outBufferCapacity += 32
+                            outBufferCapacity = outBufferIdx + bufferSize + 32
                             outBuffer.realloc(count: outBufferCapacity)
                         }
                         
