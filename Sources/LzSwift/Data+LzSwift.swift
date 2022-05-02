@@ -48,9 +48,8 @@ class Pointer<T: ExpressibleByIntegerLiteral> {
     }
         
     func dealloc() {
-        free(baseAddress)
+        baseAddress?.deallocate()
         baseAddress = nil
-        count = 0
     }
     
     func realloc(count: Int) {
