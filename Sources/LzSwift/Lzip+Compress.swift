@@ -60,7 +60,7 @@ extension Lzip {
                 let unsafeBufferPointer = unsafeRawBufferPointer.bindMemory(to: UInt8.self)
                 guard let inBuffer = unsafeBufferPointer.baseAddress else { return Data() }
 
-                let outBuffer = Pointer<UInt8>(count: bufferSize)
+                var outBuffer = Pointer<UInt8>(count: bufferSize)
                 var outBufferIdx = 0
                 var outBufferCapacity = bufferSize
 

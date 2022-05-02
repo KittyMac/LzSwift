@@ -1,19 +1,21 @@
 import Foundation
 import lzlib
 
+fileprivate let bufferSize = 65536
+
 extension Lzip {
     public class Decompress {
-        var buffer: Pointer<UInt8>
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
         var decoder: OpaquePointer?
         
         deinit {
-            buffer.dealloc()
+            buffer.deallocate()
+            
             LZ_decompress_close(decoder)
             decoder = nil
         }
         
-        public init(bufferSize: Int = 65536) {
-            buffer = Pointer<UInt8>(count: bufferSize)
+        public init() {
             decoder = LZ_decompress_open()
         }
                 
@@ -21,18 +23,19 @@ extension Lzip {
             return try input.withUnsafeBytes { unsafeRawBufferPointer in
                 let unsafeBufferPointer = unsafeRawBufferPointer.bindMemory(to: UInt8.self)
                 guard let inBuffer = unsafeBufferPointer.baseAddress else { return Data() }
+
+                var outBuffer = Pointer<UInt8>(count: bufferSize)
+                var outBufferIdx = 0
+                var outBufferCapacity = bufferSize
                 
                 let inBufferSize = input.count
                 var inOffset = 0
-                
-                var bufferIdx = 0
                 
                 while inOffset < inBufferSize {
                     let inMaxSize = min(inBufferSize - inOffset, Int(LZ_decompress_write_size(decoder)))
                     if inMaxSize > 0 {
                         let wr = LZ_decompress_write(decoder, inBuffer + inOffset, Int32(inMaxSize))
                         if wr < 0 {
-                            buffer.dealloc()
                             LZ_decompress_close(decoder)
                             decoder = nil
                             throw Lzip.Error(LZ_decompress_errno(decoder))
@@ -40,37 +43,34 @@ extension Lzip {
                         inOffset += Int(wr)
                     }
                     
-                    while buffer.baseAddress != nil {
+                    while true {
                         
-                        if bufferIdx + buffer.count > buffer.count {
-                            buffer.realloc(count: bufferIdx + buffer.count)
+                        if outBufferIdx + bufferSize > outBufferCapacity {
+                            outBufferCapacity = outBufferIdx + bufferSize + 32
+                            outBuffer.realloc(count: outBufferCapacity)
                         }
                         
-                        let availableSpace = buffer.count - bufferIdx
-                        let rd = LZ_decompress_read(decoder, buffer.baseAddress! + bufferIdx, Int32(availableSpace))
+                        let rd = LZ_decompress_read(decoder, outBuffer.baseAddress! + outBufferIdx, Int32(bufferSize))
                         if rd < 0 {
-                            buffer.dealloc()
                             LZ_decompress_close(decoder)
                             decoder = nil
                             throw Lzip.Error(LZ_decompress_errno(decoder))
                         }
-                        if rd < availableSpace {
-                            bufferIdx += Int(rd)
+                        if rd <= 0 {
                             break
                         }
-                        bufferIdx += Int(rd)
+                        outBufferIdx += Int(rd)
                     }
                 }
-                
-                return buffer.export(count: bufferIdx)
+                                
+                return outBuffer.release(count: outBufferIdx)
             }
         }
         
         private func decompressRead(output: inout Data) throws {
-            while buffer.baseAddress != nil {
-                let rd = LZ_decompress_read(decoder, buffer.baseAddress!, Int32(buffer.count))
+            while true {
+                let rd = LZ_decompress_read(decoder, buffer, Int32(bufferSize))
                 if rd < 0 {
-                    buffer.dealloc()
                     LZ_decompress_close(decoder)
                     decoder = nil
                     throw Lzip.Error(LZ_decompress_errno(decoder))
@@ -78,7 +78,7 @@ extension Lzip {
                 if rd == 0 {
                     break
                 }
-                output.append(buffer.baseAddress!, count: Int(rd))
+                output.append(buffer, count: Int(rd))
             }
         }
         
@@ -87,7 +87,6 @@ extension Lzip {
             
             try? decompressRead(output: &output)
             
-            buffer.dealloc()
             LZ_decompress_close(decoder)
             decoder = nil
         }
