@@ -1,7 +1,7 @@
 import Foundation
 import lzlib
 
-fileprivate let bufferSize = 16384
+fileprivate let bufferSize = 65536
 
 extension Lzip {
     public class Decompress {
