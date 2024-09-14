@@ -1,11 +1,11 @@
 import Foundation
 import lzlib
 
-fileprivate let bufferSize = 65536
+fileprivate let bufferChunkSize = 1048576
 
 extension Lzip {
     public class Decompress {
-        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferChunkSize)
         var decoder: OpaquePointer?
         
         deinit {
@@ -24,9 +24,10 @@ extension Lzip {
                 let unsafeBufferPointer = unsafeRawBufferPointer.bindMemory(to: UInt8.self)
                 guard let inBuffer = unsafeBufferPointer.baseAddress else { return Data() }
 
-                var outBuffer = Pointer<UInt8>(count: bufferSize)
+                var outBufferCapacity = input.count * 100
+                var outBuffer = Pointer<UInt8>(count: outBufferCapacity)
                 var outBufferIdx = 0
-                var outBufferCapacity = bufferSize
+                
                 
                 let inBufferSize = input.count
                 var inOffset = 0
@@ -45,12 +46,14 @@ extension Lzip {
                     
                     while true {
                         
-                        if outBufferIdx + bufferSize > outBufferCapacity {
-                            outBufferCapacity = outBufferIdx + bufferSize + 32
+                        if outBufferIdx + bufferChunkSize > outBufferCapacity {
+                            //outBufferCapacity = outBufferIdx + bufferChunkSize + 32
+                            outBufferCapacity = (outBufferIdx + bufferChunkSize) * 2
                             outBuffer.realloc(count: outBufferCapacity)
+                            print("realloc: \(outBufferCapacity)")
                         }
                         
-                        let rd = LZ_decompress_read(decoder, outBuffer.baseAddress! + outBufferIdx, Int32(bufferSize))
+                        let rd = LZ_decompress_read(decoder, outBuffer.baseAddress! + outBufferIdx, Int32(bufferChunkSize))
                         if rd < 0 {
                             LZ_decompress_close(decoder)
                             decoder = nil
@@ -69,7 +72,7 @@ extension Lzip {
         
         private func decompressRead(output: inout Data) throws {
             while true {
-                let rd = LZ_decompress_read(decoder, buffer, Int32(bufferSize))
+                let rd = LZ_decompress_read(decoder, buffer, Int32(bufferChunkSize))
                 if rd < 0 {
                     LZ_decompress_close(decoder)
                     decoder = nil

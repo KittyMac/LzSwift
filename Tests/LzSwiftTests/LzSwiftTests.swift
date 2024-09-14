@@ -1,5 +1,6 @@
 import XCTest
-@testable import LzSwift
+//@testable import LzSwift
+import LzSwift
 
 final class LzSwiftTests: XCTestCase {
     let lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
@@ -37,8 +38,11 @@ final class LzSwiftTests: XCTestCase {
     
     func testPerformanceDecompression0() {
         // 3.7 MB -> 165.3 MB
+        // baseline: 3.392
+        // 3.377 s
+        // 3.364
         measure {
-            runPerformance(165_293_728, "/Volumes/Optane/ClusterArchiver/testFile0.csv.lz")
+            runPerformance(986_109_722, "/Users/rjbowli/Desktop/prod_9507662D-C397-452E-A7FA-C65B310A54DC_2024-08-23_501.csv.lz")
         }
     }
     
@@ -50,7 +54,7 @@ final class LzSwiftTests: XCTestCase {
     func testPerformanceDecompression1() {
         // 197 MB -> 9.48 GB
         // 44.3 secs (lzip CLI 54.648 secs)
-        runPerformance(9_484_439_864, "/Volumes/Optane/ClusterArchiver/testFile1.csv.lz")
+        runPerformance(9_484_439_864, "/Users/rjbowli/Desktop/prod_C6EEC6AC-F98F-4BA7-A8E8-A06C11EB3470_2024-07-01_1097211.csv.lz")
     }
     
     func testSimpleCompression() {
