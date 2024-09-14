@@ -249,17 +249,14 @@ static inline void CRC32_update_buf( uint32_t * const crc,
                                     const uint8_t * const buffer,
                                     const int size )
 {
-    int i;
     uint32_t c = *crc;
     
     const uint8_t* ptr = buffer;
     const uint8_t* endPtr = buffer + size;
     while (ptr < endPtr) {
-        c = crc32[ (c ^ *ptr ) & 0xFF] ^ ( c >> 8 );
+        c = crc32[ (c ^ *ptr ) & 0xFF ] ^ ( c >> 8 );
         ptr++;
     }
-    //for( i = 0; i < size; ++i )
-    //  c = crc32[ (c ^ buffer[i] ) & 0xFF] ^ ( c >> 8 );
     *crc = c;
 }
 

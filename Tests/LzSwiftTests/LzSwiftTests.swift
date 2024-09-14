@@ -41,6 +41,10 @@ final class LzSwiftTests: XCTestCase {
         // baseline: 3.392
         // 3.377 s
         // 3.364
+        
+        // 3.382 (64k block size)
+        // 3.376 (1MB size)
+        // 3.359 (16MB size)
         measure {
             runPerformance(986_109_722, "/Users/rjbowli/Desktop/prod_9507662D-C397-452E-A7FA-C65B310A54DC_2024-08-23_501.csv.lz")
         }
@@ -54,7 +58,16 @@ final class LzSwiftTests: XCTestCase {
     func testPerformanceDecompression1() {
         // 197 MB -> 9.48 GB
         // 44.3 secs (lzip CLI 54.648 secs)
-        runPerformance(9_484_439_864, "/Users/rjbowli/Desktop/prod_C6EEC6AC-F98F-4BA7-A8E8-A06C11EB3470_2024-07-01_1097211.csv.lz")
+        
+        // 299.093s (64k block size)
+        // ???? (1MB size)
+        // 296.005 (16MB size)
+        // 293.289 (32MB size)
+        let options = XCTMeasureOptions()
+        options.iterationCount = 0
+        measure(options: options) {
+            runPerformance(35_825_530_277, "/Users/rjbowli/Desktop/prod_C6EEC6AC-F98F-4BA7-A8E8-A06C11EB3470_2024-07-01_1097211.csv.lz")
+        }
     }
     
     func testSimpleCompression() {
