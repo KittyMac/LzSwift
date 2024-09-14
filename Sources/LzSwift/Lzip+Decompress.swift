@@ -47,10 +47,10 @@ extension Lzip {
                     while true {
                         
                         if outBufferIdx + bufferChunkSize > outBufferCapacity {
-                            //outBufferCapacity = outBufferIdx + bufferChunkSize + 32
+                            // outBufferCapacity = outBufferIdx + bufferChunkSize + 32
                             outBufferCapacity = (outBufferIdx + bufferChunkSize) * 2
                             outBuffer.realloc(count: outBufferCapacity)
-                            print("realloc: \(outBufferCapacity)")
+                            // print("realloc: \(outBufferCapacity)")
                         }
                         
                         let rd = LZ_decompress_read(decoder, outBuffer.baseAddress! + outBufferIdx, Int32(bufferChunkSize))
