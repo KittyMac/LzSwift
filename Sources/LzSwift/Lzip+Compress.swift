@@ -64,6 +64,7 @@ extension Lzip {
                 var outBufferIdx = 0
                 var outBufferCapacity = bufferSize
 
+                defer { outBuffer.dealloc() }
                 
                 let inBufferSize = input.count
                 var inOffset = 0
@@ -73,9 +74,10 @@ extension Lzip {
                     if inMaxSize > 0 {
                         let wr = LZ_compress_write(encoder, inBuffer + inOffset, Int32(inMaxSize))
                         if wr < 0 {
+                            let err = LZ_compress_errno(encoder)
                             LZ_compress_close(encoder)
                             encoder = nil
-                            throw Lzip.Error(LZ_compress_errno(encoder))
+                            throw Lzip.Error(err)
                         }
                         inOffset += Int(wr)
                     }
@@ -88,9 +90,10 @@ extension Lzip {
                         }
                         let rd = LZ_compress_read(encoder, outBuffer.baseAddress! + outBufferIdx, Int32(bufferSize))
                         if rd < 0 {
+                            let err = LZ_compress_errno(encoder)
                             LZ_compress_close(encoder)
                             encoder = nil
-                            throw Lzip.Error(LZ_compress_errno(encoder))
+                            throw Lzip.Error(err)
                         }
                         if rd <= 0 {
                             break
@@ -108,9 +111,10 @@ extension Lzip {
             while true {
                 let rd = LZ_compress_read(encoder, buffer, Int32(bufferSize))
                 if rd < 0 {
+                    let err = LZ_compress_errno(encoder)
                     LZ_compress_close(encoder)
                     encoder = nil
-                    throw Lzip.Error(LZ_compress_errno(encoder))
+                    throw Lzip.Error(err)
                 }
                 if rd == 0 {
                     break

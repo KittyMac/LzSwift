@@ -54,15 +54,22 @@ struct Pointer<T: ExpressibleByIntegerLiteral> {
     }
     
     mutating func dealloc() {
-        baseAddress?.deallocate()
+        if let baseAddress = baseAddress {
+            free(baseAddress)
+        }
         baseAddress = nil
     }
     
     mutating func realloc(count: Int) {
         guard let baseAddress = baseAddress else { return }
         let newSize = count * MemoryLayout<T>.size
-        self.baseAddress = Foundation.realloc(baseAddress, count * MemoryLayout<T>.size)?.assumingMemoryBound(to: T.self)
-        self.count = newSize
+        if let newBase = Foundation.realloc(baseAddress, newSize)?.assumingMemoryBound(to: T.self) {
+            self.baseAddress = newBase
+            self.count = newSize
+        } else {
+            free(baseAddress)
+            self.baseAddress = nil
+        }
     }
     
     mutating func release(count: Int) -> Data {
