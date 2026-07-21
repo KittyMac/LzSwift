@@ -57,6 +57,10 @@ extension Lzip {
                         
                         let rd = LZ_decompress_read(decoder, outBuffer.baseAddress! + outBufferIdx, Int32(bufferChunkSize))
                         if rd < 0 {
+                            if inBufferSize == inOffset {
+                                return outBuffer.release(count: outBufferIdx)
+                            }
+                            
                             let err = LZ_decompress_errno(decoder)
                             LZ_decompress_close(decoder)
                             decoder = nil

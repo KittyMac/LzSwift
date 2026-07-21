@@ -15,6 +15,7 @@ final class LzSwiftTests: XCTestCase {
             if data.isLzipped {
                 let decompressor = Lzip.Decompress()
                 output = try decompressor.decompress(input: data)
+                try! output.write(to: URL(fileURLWithPath: "/tmp/sample.csv"))
             } else {
                 let compressor = Lzip.Compress(level: .lvl1)
                 output = try compressor.compress(input: data)
@@ -46,7 +47,7 @@ final class LzSwiftTests: XCTestCase {
         // 3.376 (1MB size)
         // 3.359 (16MB size)
         measure {
-            runPerformance(986_109_722, "/Users/rjbowli/Desktop/prod_9507662D-C397-452E-A7FA-C65B310A54DC_2024-08-23_501.csv.lz")
+            runPerformance(11_234_542, "/Users/rjbowli/Desktop/errorlogs/prod_F44213BE-C6CF-4297-92B0-610D319602D5_2026-07-10_2499.csv.lz.corrupted")
         }
     }
     
